@@ -7,7 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 import pandas as pd
 import preprocess as pp
-
+from imblearn.over_sampling import SMOTE
 
 def xgboost(X_train, X_test, y_train, y_test):
     gbc = xgb.XGBClassifier(objective="binary:logistic", random_state=42,  n_estimators=600, min_child_weight=1, max_depth=7, learning_rate=0.1, gamma=0.5, colsample_bytree=1.0)
@@ -62,21 +62,22 @@ X = pp.preProcess_X(df_train)
 y = pp.preProcess_y(df_train)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+sm = SMOTE()
+X_train, y_train = sm.fit_resample(X_train, y_train)
 
-
-# performance1 = xgboost(X_train, X_test, y_train, y_test)
+performance1 = xgboost(X_train, X_test, y_train, y_test)
 # performance2 = logistic_training(X_train, X_test, y_train, y_test)
 # performance3 = gradient_boosting(X_train, X_test, y_train, y_test)
 # performance4 = KNN(X_train, X_test, y_train, y_test)
 
-# labels = ["Classifier", "f_score"]
-# values = [performance1,
+labels = ["Classifier", "f_score"]
+values = [performance1,
 #           # performance2,
 #           # performance3,
 #           # performance4
-#           ]
-# scores = pd.DataFrame(values, columns=labels)
-# print(scores)
+          ]
+scores = pd.DataFrame(values, columns=labels)
+print(scores)
 #
 
 
