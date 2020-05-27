@@ -41,6 +41,8 @@ def preProcess_X(df):
 
     df['distance'] = df.apply(lambda row: findDistance(row.pick_lon, row.pick_lat, row.drop_lon, row.drop_lat), axis=1)
     df['effective_time'] = df.apply(lambda row: row.duration - row.meter_waiting, axis=1)
+    df['effective_fare'] = df.apply(lambda row: row.fare - row.additional_fare - row.meter_waiting_fare, axis=1)
+    df['total_duration'] = df.apply(lambda row: (row.duration + row.meter_waiting_till_pickup)/row.distance, axis=1)
     df = df.drop("pickup_time", axis=1)
     df = df.drop("drop_time", axis=1)
     df = df.drop("tripid", axis=1)
