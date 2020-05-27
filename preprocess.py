@@ -15,13 +15,13 @@ def findDistance(lon1, lat1, lon2, lat2):
     c = 2 * asin(sqrt(a))
     # Radius of earth in kilometers is 6371
     km = 6371 * c
+
     return km
 
 
 def preProcess_X(df):
     df = df.replace("nan", np.NaN)
     df.dropna(inplace=True)
-
     y = []
     if 'label' in df.columns:
         y = df.iloc[:, -1].values
@@ -29,28 +29,33 @@ def preProcess_X(df):
 
     df['pickup_time'] = pd.to_datetime(df['pickup_time'])
     df['drop_time'] = pd.to_datetime(df['drop_time'])
-    df['day'] = df['pickup_time'].dt.dayofweek
-    df['hour'] = df['pickup_time'].dt.hour
-    tem = pd.get_dummies(df.day, prefix='day')
-    tem = tem.drop("day_6", axis=1)
-    df = pd.concat([df, tem], axis=1, sort=False)
+    # df['day'] = df['pickup_time'].dt.dayofweek
+    # df['hour'] = df['pickup_time'].dt.hour
+    # tem = pd.get_dummies(df.day, prefix='day')
+    # tem = tem.drop("day_6", axis=1)
+    # df = pd.concat([df, tem], axis=1, sort=False)
 
-    tem = pd.get_dummies(df.hour, prefix='hour')
-    tem = tem.drop("hour_23", axis=1)
-    df = pd.concat([df, tem], axis=1, sort=False)
+    # tem = pd.get_dummies(df.hour, prefix='hour')
+    # tem = tem.drop("hour_23", axis=1)
+    # df = pd.concat([df, tem], axis=1, sort=False)
 
+    df['distance'] = df.apply(lambda row: findDistance(row.pick_lon, row.pick_lat, row.drop_lon, row.drop_lat), axis=1)
+    df['effective_time'] = df.apply(lambda row: row.duration - row.meter_waiting, axis=1)
     df = df.drop("pickup_time", axis=1)
     df = df.drop("drop_time", axis=1)
     df = df.drop("tripid", axis=1)
 
-    print(df.head())
+    print(df.columns)
+
     X = df.iloc[:, :].values
     # print (X[0,-1])
     # scaler = MinMaxScaler()
-    scaler = StandardScaler()
-    X = scaler.fit_transform(X)
+    # X = scaler.fit_transform(X)
 
     return X, y
+
+
+
 
 #
 # train_filename = "Data/train.csv"
