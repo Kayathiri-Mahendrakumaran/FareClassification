@@ -58,8 +58,7 @@ def KNN(X_train, X_test, y_train, y_test):
 
 train_filename = "Data/train.csv"
 df_train = pd.read_csv(train_filename)
-X = pp.preProcess_X(df_train)
-y = pp.preProcess_y(df_train)
+X, y = pp.preProcess_X(df_train)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 sm = SMOTE()
@@ -84,7 +83,7 @@ print(scores)
 # Final evaluation
 test_filename = "Data/test.csv"
 df = pd.read_csv(test_filename)
-X_t = pp.preProcess_X(df)
+X_t, y_t = pp.preProcess_X(df)
 
 gbc = xgb.XGBClassifier(objective="binary:logistic", random_state=42, n_estimators=600, min_child_weight=1, max_depth=7,
                         learning_rate=0.05, gamma=0.5, colsample_bytree=1.0)

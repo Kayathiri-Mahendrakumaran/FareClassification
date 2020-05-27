@@ -4,48 +4,56 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from math import radians, cos, sin, asin, sqrt
+import datetime
 
 
-def findDistance(lon1,lat1, lon2,lat2):
+def findDistance(lon1, lat1, lon2, lat2):
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
     c = 2 * asin(sqrt(a))
     # Radius of earth in kilometers is 6371
-    # km = 6371 * c
+    km = 6371 * c
+    return km
 
-    return c
+
 def preProcess_X(df):
     df = df.replace("nan", np.NaN)
-    # df['additional_fare'].fillna(df['additional_fare'].mode().iloc[0], inplace=True)
-    df.fillna(df.mean(), inplace=True)
-    # print(df.isnull().sum())
+    df.dropna(inplace=True)
 
-    # df['distance'] = df.apply(lambda row: findDistance(row.pick_lon,row.pick_lat, row.drop_lon, row.drop_lat), axis=1)
-    # df['dlon'] = df.apply(lambda row: abs(row.drop_lon - row.pick_lon), axis=1)
-    # df['dlat'] = df.apply(lambda row: abs(row.drop_lat - row.pick_lat), axis=1)
+    y = []
+    if 'label' in df.columns:
+        y = df.iloc[:, -1].values
+        df = df.drop("label", axis=1)
+
+    df['pickup_time'] = pd.to_datetime(df['pickup_time'])
+    df['drop_time'] = pd.to_datetime(df['drop_time'])
+    df['day'] = df['pickup_time'].dt.dayofweek
+    df['hour'] = df['pickup_time'].dt.hour
+    tem = pd.get_dummies(df.day, prefix='day')
+    tem = tem.drop("day_6", axis=1)
+    df = pd.concat([df, tem], axis=1, sort=False)
+
+    tem = pd.get_dummies(df.hour, prefix='hour')
+    tem = tem.drop("hour_23", axis=1)
+    df = pd.concat([df, tem], axis=1, sort=False)
+
+    df = df.drop("pickup_time", axis=1)
+    df = df.drop("drop_time", axis=1)
+    df = df.drop("tripid", axis=1)
+
     print(df.head())
-    X = df.iloc[:, [1, 2, 3, 4, 5, 8, 9, 10, 11, 12]].values
+    X = df.iloc[:, :].values
     # print (X[0,-1])
     # scaler = MinMaxScaler()
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
 
-    return X
-
-
-def preProcess_y(df):
-    y = df.iloc[:, -1].values
-
-    le = LabelEncoder()
-    y = le.fit_transform(y)
-
-    return y
+    return X, y
 
 #
 # train_filename = "Data/train.csv"
 # df_train = pd.read_csv(train_filename)
 # X = preProcess_X(df_train)
 # y = preProcess_y(df_train)
-
